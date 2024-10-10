@@ -1,10 +1,10 @@
 import ctypes
 from time import sleep
 from io import BytesIO
-from urllib import request
 from pathlib import Path
 from typing import Union
 
+import requests
 from PIL import Image
 from PIL import ImageDraw
 
@@ -13,6 +13,13 @@ from PIL import ImageDraw
 # root_dir = Path(__file__).absolute().parent
 # # 壁纸存储路径
 # wallpaper_path = root_dir.joinpath(f'wallpaper_{display_width}x{display_height}.jpg')
+
+
+# 代理配置, 如果没有, 请设置为 None
+proxies={
+    "http": "http://127.0.0.1:7890",
+    "https": "http://127.0.0.1:7890"
+}
 
 
 def create_gradient_image(width: int, height: int, start_color: str, end_color: str) -> Image.Image:
@@ -50,12 +57,15 @@ def get_myrl(retries: int = 5, retry_interval: Union[int, float] = 3) -> Union[N
         retries - 重试次数
         retry_interval - 重试间隔(单位:秒)
     '''
+    
     try:
-        response = request.urlopen(
-            'https://api.vvhan.com/api/moyu',
-            timeout=10
+        response = requests.get(
+            "https://api.vvhan.com/api/moyu", 
+            verify=False, 
+            timeout=10, 
+            proxies=proxies
         )
-        return Image.open(BytesIO(response.read()))
+        return Image.open(BytesIO(response.content))
     except Exception as err:
         if retries <= 0:
             return None
